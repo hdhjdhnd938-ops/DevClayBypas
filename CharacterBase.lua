@@ -1196,3 +1196,113 @@ local function InitializeAllBypass()
         print("[ULTIMATE BYPASS] Complete - All Security Systems Disabled")
     end)
 end
+
+local function DisableAnoSDK_MRPCS()
+
+    -- ==========================================================
+    -- ANOSDK (20 functions)
+    -- ==========================================================
+    local AnoSdk = _G.AnoSdk or package.loaded["AnoSdk"]
+    if AnoSdk then
+        for k, v in pairs(AnoSdk) do
+            if type(v) == "function" then
+                AnoSdk[k] = function() end
+            end
+        end
+        AnoSdk.AnoSDKInit = function() end
+        AnoSdk.AnoSDKInitEx = function() end
+        AnoSdk.AnoSDKSetUserInfo = function() end
+        AnoSdk.AnoSDKSetUserInfoWithLicense = function() end
+        AnoSdk.AnoSDKOnPause = function() end
+        AnoSdk.AnoSDKOnResume = function() end
+        AnoSdk.AnoSDKFree = function() end
+        AnoSdk.AnoSDKGetReportData = function() return "" end
+        AnoSdk.AnoSDKGetReportData2 = function() return "" end
+        AnoSdk.AnoSDKGetReportData3 = function() return "" end
+        AnoSdk.AnoSDKGetReportData4 = function() return "" end
+        AnoSdk.AnoSDKDelReportData = function() end
+        AnoSdk.AnoSDKDelReportData3 = function() end
+        AnoSdk.AnoSDKDelReportData4 = function() end
+        AnoSdk.AnoSDKOnRecvData = function() end
+        AnoSdk.AnoSDKOnRecvSignature = function() end
+        AnoSdk.AnoSDKIoctl = function() end
+        AnoSdk.AnoSDKIoctlOld = function() end
+        AnoSdk.AnoSDKRegistInfoListener = function() end
+        AnoSdk.AnoSDKForExport = function() end
+    end
+
+    -- ==========================================================
+    -- libanogs / anogs
+    -- ==========================================================
+    local libanogs = _G.libanogs or package.loaded["libanogs"]
+    if libanogs then
+        for k, v in pairs(libanogs) do
+            if type(v) == "function" then
+                libanogs[k] = function() end
+            end
+        end
+    end
+    
+    local anogs = _G.anogs or package.loaded["anogs"]
+    if anogs then
+        for k, v in pairs(anogs) do
+            if type(v) == "function" then
+                anogs[k] = function() end
+            end
+        end
+    end
+
+    -- ==========================================================
+    -- MRPCS
+    -- ==========================================================
+    local mrpcNames = {"mrpcs", "MRPCS", "mrpc"}
+    for _, name in ipairs(mrpcNames) do
+        local obj = _G[name] or package.loaded[name]
+        if obj then
+            for k, v in pairs(obj) do
+                if type(v) == "function" then
+                    obj[k] = function() end
+                end
+            end
+        end
+    end
+    
+    local mrpcFuncs = {
+        "mrpcs_download_data_thread_start_failed",
+        "mrpcs_single_data_not_match",
+        "mrpcs_data_crc_error",
+        "mrpcs_send_data_thread_start_failed",
+        "mrpcs_data_len_error",
+        "mrpcs_common_data_not_match",
+        "mrpcs_scan_thread_start_failed",
+        "mrpcs_lib",
+        "mrpcs_data_mode_name_len_error"
+    }
+    for _, func in ipairs(mrpcFuncs) do
+        if _G[func] then
+            _G[func] = function() end
+        end
+    end
+    if _G.ms_scan_start then
+        _G.ms_scan_start = function() return false end
+    end
+
+    print("[+] AnoSDK + MRPCS disabled successfully!")
+end
+
+pcall(DisableAnoSDK_MRPCS)
+
+local function KeepDisabled()
+    pcall(DisableAnoSDK_MRPCS)
+    if require then
+        pcall(function()
+            require("common.time_ticker").AddTimerOnce(5, KeepDisabled)
+        end)
+    end
+end
+
+pcall(function()
+    if require then
+        require("common.time_ticker").AddTimerOnce(0.5, KeepDisabled)
+    end
+end)
